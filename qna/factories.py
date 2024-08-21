@@ -1,9 +1,13 @@
 import factory
-from .models import QnA
+from factory.django import DjangoModelFactory
+from qna.models import QnA
+from userprofile.factories import UserProfileFactory
 
-class QnAFactory(factory.django.DjangoModelFactory):
+
+class QnAFactory(DjangoModelFactory):
     class Meta:
         model = QnA
 
+    user = factory.SubFactory(UserProfileFactory)
     question = factory.Faker('sentence')
-    answer = factory.Faker('text')
+    answer = factory.Faker('paragraph')

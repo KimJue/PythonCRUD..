@@ -1,14 +1,31 @@
 from django.test import TestCase
-from .factories import QnAFactory
-from .models import QnA
+from rest_framework import status
+from rest_framework.test import APIClient
 
-class QnATests(TestCase):
+from userprofile.factories import UserProfileFactory
+
+
+class QnACreationTest(TestCase):
     def setUp(self):
-        self.qna = QnAFactory.create()
+        self.client = APIClient()
+        self.user = UserProfileFactory.create()
+        self.client.force_authenticate(user=self.user)
 
-    def test_qna_만들기(self):
-        self.assertTrue(QnA.objects.exists())
-        self.assertEqual(self.qna.question, self.qna.question)
+    def test_create_qna_success(self):
+        response = self.client.post('/qna/', {
+            'user': self.user.user_id,
+            'question': 'What is Django?',
+            'answer': 'Django is a high-level Python web framework.',
+        }, format='json')
 
-    def test_qna_answer_답변보유(self):
-        self.assertTrue(self.qna.answer)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['question'], 'What is Django?')
+        self.assertEqual(response.data['answer'], 'Django is a high-level Python web framework.')
+
+    def test_create_qna_invalid_data(self):
+        response = self.client.post('/qna/', {
+            'question': 'What is Django?',
+        }, format='json')  # answer가 없어서 유효성 검사 실패
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('answer', response.data)

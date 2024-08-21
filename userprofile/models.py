@@ -3,9 +3,11 @@ from django.contrib.auth.models import User
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile', unique=True)  # 사용자와 프로필 일대일 관계
-    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
-    bio = models.TextField(blank=True, null=True)
+    user_id = models.CharField(max_length=100, primary_key=True)
+    password = models.CharField(max_length=100)
+    email = models.CharField(max_length=100, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"UserProfile {self.user.username}"
+        return self.user_id
