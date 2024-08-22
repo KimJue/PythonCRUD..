@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from alerts.models import Alert
+from event.models import Event
 from posts.serializers import PostSerializer, CommentSerializer
 from posts.models import Post, Comment
 from userprofile.models import UserProfile, UserFollow
@@ -19,14 +20,9 @@ class PostAPI(APIView):
             title = request.data['title']
             content = request.data['content']
             user_id = request.data['user_id']
+
             author: UserProfile = UserProfile.objects.get(user_id=user_id)
             post = Post.objects.create(title=title, content=content, author=author)
-            followers = author.followers.all().exclude(me=author)
-            for follower in followers:
-                Alert.objects.create(
-                    user_id=follower.me,
-                    message=f"{author.name}님이 새로운 글을 작성했습니다."
-                )
             return Response(PostSerializer(post).data, status=status.HTTP_201_CREATED)
 
         except KeyError as e:
