@@ -14,11 +14,19 @@ class PostAPI(APIView):
         try:
             title = request.data['title']
             content = request.data['content']
-            user_id = request.user_id
-            post = Post.objects.create(title=title, content=content, user_id=user_id)
+            author = request.author
+            post = Post.objects.create(title=title, content=content, user_id=author)
             return Response(PostSerializer(post).data, status=status.HTTP_201_CREATED)
         except KeyError as e:
             raise ValidationError({str(e):'This field is required.'})
+
+       # def create(self, request, *args, **kwargs):
+       #     serializer = PostSerializer(data=request.data)
+       #     serializer.is_valid(raise_exception=True)
+       #     serializer.save()
+       #
+       #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
        # data = request.data
 

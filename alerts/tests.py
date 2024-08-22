@@ -1,6 +1,9 @@
 from django.test import TestCase
+from rest_framework.test import APITestCase
+
 from .factories import AlertFactory
 from .models import Alert
+
 
 class AlertTests(TestCase):
     def setUp(self):

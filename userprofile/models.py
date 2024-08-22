@@ -11,3 +11,10 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user_id
+
+
+class UserFollow(models.Model):
+    me = models.ForeignKey(UserProfile, related_name="me", on_delete=models.CASCADE)
+    followee = models.ForeignKey(UserProfile, related_name="followers", on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

@@ -3,7 +3,7 @@ from userprofile.models import UserProfile
 
 
 class QnA(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='qnas')  # 외래키 추가
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='qnas', null=True)  # 외래키 추가
     question = models.CharField(max_length=255)
     answer = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
