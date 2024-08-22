@@ -14,7 +14,7 @@ class PostAPI(APIView):
         try:
             title = request.data['title']
             content = request.data['content']
-            author = request.author
+            author = request.UserProfile.objects.get(user_id=request.user_id)
             post = Post.objects.create(title=title, content=content, user_id=author)
             return Response(PostSerializer(post).data, status=status.HTTP_201_CREATED)
         except KeyError as e:
