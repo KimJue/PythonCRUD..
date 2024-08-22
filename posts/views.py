@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from alerts.models import Alert
 from posts.serializers import PostSerializer, CommentSerializer
 from posts.models import Post, Comment
-from userprofile.models import UserProfile
+from userprofile.models import UserProfile, UserFollow
 
 
 class PostAPI(APIView):
@@ -30,31 +30,29 @@ class PostAPI(APIView):
             return Response(PostSerializer(post).data, status=status.HTTP_201_CREATED)
 
         except KeyError as e:
-            raise ValidationError({str(e):'This field is required.'})
+            raise ValidationError({str(e): 'This field is required.'})
         except UserProfile.DoesNotExist:
             return Response({'error': 'User profile not found'}, status=status.HTTP_404_NOT_FOUND)
-
-
 
         # 나를 팔로우 하고 있는 사람들을 모두 찾아서, 그 사람들의 alert 테이블에 블로그 글이 작성됐다는 알림을 추가한다.
         # 나를 팔로우 하고 있는 사람들을 찾는 쿼리 SELECT * FROM
 
-       # def create(self, request, *args, **kwargs):
-       #     serializer = PostSerializer(data=request.data)
-       #     serializer.is_valid(raise_exception=True)
-       #     serializer.save()
-       #
-       #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+    # def create(self, request, *args, **kwargs):
+    #     serializer = PostSerializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     serializer.save()
+    #
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    # data = request.data
 
-       # data = request.data
+    #post = Post.objects.create(
+    #   title=data['title'],
+    #  content=data['content']
+    # )
 
-        #post = Post.objects.create(
-         #   title=data['title'],
-          #  content=data['content']
-       # )
+    #return Response(PostSerializer(post).data)
 
-        #return Response(PostSerializer(post).data)
 
 class PostDetailAPI(APIView):
     def get_object(self, pk):
@@ -97,6 +95,7 @@ class PostDetailAPI(APIView):
 
         return Response({"Error": True}, status=404)
 
+
 class CommentAPI(APIView):
     def get(self, request):
         comments = Comment.objects.all()
@@ -105,9 +104,18 @@ class CommentAPI(APIView):
     def post(self, request):
         serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            comment = serializer.save()  # content 1 post 1
+            post = comment.post
+            author = post.author
+
+            if comment.author != author:
+                Alert.objects.create(
+                    user_id=author,
+                    message=f"{comment.author.name}님이 {post.title} 게시물에 댓글을 달았습니다."
+                )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class CommentDetailAPI(APIView):
     def get_object(self, pk):
