@@ -2,6 +2,8 @@ from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from alerts.models import Alert
 from posts.serializers import PostSerializer, CommentSerializer
 from posts.models import Post, Comment
 from userprofile.models import UserProfile
@@ -17,13 +19,25 @@ class PostAPI(APIView):
             title = request.data['title']
             content = request.data['content']
             user_id = request.data['user_id']
-            author = UserProfile.objects.get(user_id=user_id)
+            author: UserProfile = UserProfile.objects.get(user_id=user_id)
             post = Post.objects.create(title=title, content=content, author=author)
+            followers = author.followers.all().exclude(me=author)
+            for follower in followers:
+                Alert.objects.create(
+                    user_id=follower.me,
+                    message=f"{author.name}님이 새로운 글을 작성했습니다."
+                )
             return Response(PostSerializer(post).data, status=status.HTTP_201_CREATED)
+
         except KeyError as e:
             raise ValidationError({str(e):'This field is required.'})
         except UserProfile.DoesNotExist:
             return Response({'error': 'User profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+        # 나를 팔로우 하고 있는 사람들을 모두 찾아서, 그 사람들의 alert 테이블에 블로그 글이 작성됐다는 알림을 추가한다.
+        # 나를 팔로우 하고 있는 사람들을 찾는 쿼리 SELECT * FROM
 
        # def create(self, request, *args, **kwargs):
        #     serializer = PostSerializer(data=request.data)
