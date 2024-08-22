@@ -7,7 +7,7 @@ import posts
 from alerts.models import Alert
 from posts.serializers import PostSerializer, CommentSerializer
 from posts.models import Post, Comment
-from posts.services import PostService
+from posts.services import PostService, CommentService
 from userprofile.models import UserProfile
 
 
@@ -25,8 +25,9 @@ class PostAPI(APIView):
         # 2층 입구
         post = PostService.create_post(title=title, content=content, user_id=user_id)
 
+        serialized_post = PostSerializer(post)
         # 1층
-        return Response(post)
+        return Response(serialized_post.data)
 
         # 나를 팔로우 하고 있는 사람들을 모두 찾아서, 그 사람들의 alert 테이블에 블로그 글이 작성됐다는 알림을 추가한다.
         # 나를 팔로우 하고 있는 사람들을 찾는 쿼리 SELECT * FROM
@@ -96,19 +97,15 @@ class CommentAPI(APIView):
         return Response(CommentSerializer(comments, many=True).data)
 
     def post(self, request):
-        serializer = CommentSerializer(data=request.data)
-        if serializer.is_valid():
-            comment = serializer.save()  # content 1 post 1 author 2
-            post = comment.post
-            author = post.author
+        post_id = request.data['post_id']
+        content = request.data['content']
+        author_id = request.data['author']
 
-            if comment.author != author:
-                Alert.objects.create(
-                    user_id=author,
-                    message=f"{comment.author.name}님이 {post.title} 게시물에 댓글을 달았습니다."
-                )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # CommentService를 사용해 댓글 생성
+        comment = CommentService.create_comment(post_id=post_id, content=content, author_id=author_id)
+
+        serialized_comment = CommentSerializer(comment)
+        return Response(serialized_comment.data, status=status.HTTP_201_CREATED)
 
 
 class CommentDetailAPI(APIView):
