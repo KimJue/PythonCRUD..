@@ -104,7 +104,7 @@ class CommentAPI(APIView):
     def post(self, request):
         serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
-            comment = serializer.save()  # content 1 post 1
+            comment = serializer.save()  # content 1 post 1 author 2
             post = comment.post
             author = post.author
 
