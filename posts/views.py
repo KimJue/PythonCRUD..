@@ -3,11 +3,12 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+import posts
 from alerts.models import Alert
-from event.models import Event
 from posts.serializers import PostSerializer, CommentSerializer
 from posts.models import Post, Comment
-from userprofile.models import UserProfile, UserFollow
+from posts.services import PostService
+from userprofile.models import UserProfile
 
 
 class PostAPI(APIView):
@@ -16,19 +17,16 @@ class PostAPI(APIView):
         return Response(PostSerializer(posts, many=True).data)
 
     def post(self, request):
-        try:
-            title = request.data['title']
-            content = request.data['content']
-            user_id = request.data['user_id']
+        # 1층
+        title = request.data['title']
+        content = request.data['content']
+        user_id = request.data['user_id']
 
-            author: UserProfile = UserProfile.objects.get(user_id=user_id)
-            post = Post.objects.create(title=title, content=content, author=author)
-            return Response(PostSerializer(post).data, status=status.HTTP_201_CREATED)
+        # 2층 입구
+        post = PostService.create_post(title=title, content=content, user_id=user_id)
 
-        except KeyError as e:
-            raise ValidationError({str(e): 'This field is required.'})
-        except UserProfile.DoesNotExist:
-            return Response({'error': 'User profile not found'}, status=status.HTTP_404_NOT_FOUND)
+        # 1층
+        return Response(post)
 
         # 나를 팔로우 하고 있는 사람들을 모두 찾아서, 그 사람들의 alert 테이블에 블로그 글이 작성됐다는 알림을 추가한다.
         # 나를 팔로우 하고 있는 사람들을 찾는 쿼리 SELECT * FROM
