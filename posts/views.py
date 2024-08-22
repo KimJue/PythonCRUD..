@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from posts.serializers import PostSerializer, CommentSerializer
 from posts.models import Post, Comment
+from userprofile.models import UserProfile
+
 
 class PostAPI(APIView):
     def get(self, request):
@@ -14,11 +16,14 @@ class PostAPI(APIView):
         try:
             title = request.data['title']
             content = request.data['content']
-            author = request.UserProfile.objects.get(user_id=request.user_id)
-            post = Post.objects.create(title=title, content=content, user_id=author)
+            user_id = request.data['user_id']
+            author = UserProfile.objects.get(user_id=user_id)
+            post = Post.objects.create(title=title, content=content, author=author)
             return Response(PostSerializer(post).data, status=status.HTTP_201_CREATED)
         except KeyError as e:
             raise ValidationError({str(e):'This field is required.'})
+        except UserProfile.DoesNotExist:
+            return Response({'error': 'User profile not found'}, status=status.HTTP_404_NOT_FOUND)
 
        # def create(self, request, *args, **kwargs):
        #     serializer = PostSerializer(data=request.data)
