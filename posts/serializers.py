@@ -5,6 +5,7 @@ from userprofile.models import UserProfile
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.PrimaryKeyRelatedField(queryset=UserProfile.objects.all())
     class Meta:
         model = Comment
         fields = '__all__'

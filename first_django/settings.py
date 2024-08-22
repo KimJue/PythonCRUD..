@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'qna',
     'alerts',
     'userprofile',
+    'event',
 ]
 
 MIDDLEWARE = [
